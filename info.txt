@@ -1,3 +1,5 @@
 Problems
 
 -Online Behgaviour doesnt upload into csv file right now.
+
+- Selenium wont stay open after NextCloud installation
