@@ -14,9 +14,8 @@ def startNextCloud():
         
         try:
             existing_container = client.containers.get('my_web_server')
-            print("Container already exists. Restarting it...")
-            existing_container.restart()
-            return  # Exit the function after restarting
+            print("Container already exists...")
+            return "Exists" # Exit the function after restarting
         except NotFound:
             pass  # If the container doesn't exist, proceed to create it
 
@@ -33,8 +32,8 @@ def startNextCloud():
         print(f"An error occurred: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-    time.sleep(10)
-    
+
+        
 def stopContainer():
     container = client.containers.get('my_web_server')
     # Stop the container (graceful shutdown)

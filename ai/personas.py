@@ -51,19 +51,28 @@ def setPersonaActivities():
     prompt = "generate a list of daily online activities, browsing habits, and social media interactions. Format the output as a CSV-friendly list."
     usePersona(prompt)
 
+
+# Generates Event Infos Using Gemini LLM
 def createEventInfo():
-    prompt = "Generate a event title, event location and event description for a event the persona is scheduling."
+    prompt = "Generate a event title, event start time in 09:00 24hr format, start date in year-month-day format just date no extra text, event end time in 09:00 24hr format, end date in year-month-day format date no extra text, event location and event description for a event the persona is scheduling. Make the dates in April 2025"
     text = usePersona(prompt)
 
     title_match = re.search(r"\*\*Event Title:\*\*\s*(.*)", text)
+    start_time_match = re.search(r"\*\*Event Start Time:\*\*\s*(.*)", text)
+    start_date_match = re.search(r"\*\*Start Date:\*\*\s*(.*)", text)
+    end_time_match = re.search(r"\*\*Event End Time:\*\*\s*(.*)", text)
+    end_date_match = re.search(r"\*\*End Date:\*\*\s*(.*)", text)
     location_match = re.search(r"\*\*Event Location:\*\*\s*(.*)", text)
     description_match = re.search(r"\*\*Event Description:\*\*\n+(.*)", text, re.DOTALL)
 
     event_title = title_match.group(1).strip() if title_match else "N/A"
+    start_time = start_time_match.group(1).strip() if start_time_match else "N/A"
+    start_date = start_date_match.group(1).strip() if start_date_match else "N/A"
+    end_time = end_time_match.group(1).strip() if end_time_match else "N/A"
+    end_date = end_date_match.group(1).strip() if end_date_match else "N/A"
     event_location = location_match.group(1).strip() if location_match else "N/A"
     event_description = description_match.group(1).strip() if description_match else "N/A"
 
-
-    eventInfos = [event_title, event_location, event_description]
+    eventInfos = [event_title, start_date, start_time, end_date, end_time, event_location, event_description]
 
     return eventInfos

@@ -5,20 +5,40 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 import sys
+import time
+import requests
 sys.path.insert(0, 'c:/Users/shane/Documents/Uni Work/CyberLab AI')
 from ai.personas import createEventInfo
 
 driver = webdriver.Firefox()
 
-def openContainer():
-    driver.get('http://localhost:8080')
+def wait_for_http(url, timeout=60, interval=1):
+    """
+    Waits until the given URL is reachable via HTTP (returns a 2xx or 3xx status).
+    """
+    print(f"Waiting for {url} to become available...")
 
-    # Wait for the page to load and for an element to be present
-    try:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, 'adminlogin')))
-    except Exception as e:
-        print(f"Error while loading page: {e}")
-        driver.quit()
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            response = requests.get(url)
+            if response.status_code < 400:
+                print(f"Ok {url} is up!")
+                return True
+        except requests.RequestException:
+            pass  # just keep trying
+
+        time.sleep(interval)
+
+    print(f"Timeout: {url} didn't become available in {timeout} seconds.")
+    return False
+
+def openContainer():
+    if wait_for_http("http://localhost:8080"):
+        driver.get("http://localhost:8080")
+    else:
+        print("Exiting: web server inside container didn't start in time.")
+
 
 def signupAdmin(username, password):
     try:
@@ -39,17 +59,22 @@ def signupAdmin(username, password):
 
 def Login(username, password):
     try:
+        openContainer()
+        print("Logging in...")
         # Wait until the form elements are available
-        username_input = WebDriverWait(driver, 10).until(
+        username_input = WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.ID, 'user'))
         )
         password_input = driver.find_element(By.ID, 'password')
-        login_button = driver.find_element(By.TAG_NAME, 'button')
+        login_button = driver.find_element(By.XPATH, '//button[@type="submit"]')
 
         # Enter the credentials and submit the form
         username_input.send_keys(username)
         password_input.send_keys(password)
         login_button.click()
+
+        openCalendar()
+        CreateEvent()
 
     except Exception as e:
         print(f"Error during login: {e}")
@@ -103,6 +128,9 @@ def CreateEvent():
         EC.presence_of_element_located((By.XPATH, '//input[@placeholder="Event title"]'))
     )
 
+    DateTimeInputs = driver.find_elements(By.ID, 'date-time-picker-input')
+  
+
     LocationInput = driver.find_element(By.TAG_NAME, "textarea")
 
     DescriptionInput = driver.find_element(By.CLASS_NAME, "textarea--description")
@@ -111,12 +139,18 @@ def CreateEvent():
     eventInfos = createEventInfo()
 
     EventTitleInput.send_keys(eventInfos[0])
-    LocationInput.send_keys(eventInfos[1])
-    DescriptionInput.send_keys(eventInfos[2])
+    for i in range(4):
+        DateTimeInputs[i].send_keys(eventInfos[1+i])
+        sleep(1)
+
+    LocationInput.send_keys(eventInfos[5])
+    DescriptionInput.send_keys(eventInfos[6])
 
     # Save Event Info
     save_button = driver.find_element(By.XPATH, '//button[contains(., "Save")]')
     save_button.click()
+
+    print("Event Created Successfully")
 
 
 
