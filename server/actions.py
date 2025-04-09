@@ -8,7 +8,7 @@ import sys
 import time
 import requests
 sys.path.insert(0, 'c:/Users/shane/Documents/Uni Work/CyberLab AI')
-from ai.personas import createEventInfo
+from ai.personas import createEventInfo, createChatInfo
 
 driver = webdriver.Firefox()
 
@@ -73,8 +73,8 @@ def Login(username, password):
         password_input.send_keys(password)
         login_button.click()
 
-        openCalendar()
-        CreateEvent()
+        openTalk()
+        startNewChat()
 
     except Exception as e:
         print(f"Error during login: {e}")
@@ -153,7 +153,47 @@ def CreateEvent():
     print("Event Created Successfully")
 
 
+# Chat Actions
+def openTalk():
+    for link in getHeaderLinks():
+        if link.get_attribute("title") == "Talk":
+            try:
+                link.click()
+            except Exception as e:
+                print(f"Error during going into Talk: {e}")
+            break
 
+def startNewChat():
+    createChatBtn = WebDriverWait(driver, 30).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'chat-plus-icon'))
+    )
+    createChatBtn.click()
+
+    createNewConv = driver.find_element(By.XPATH, '//button[contains(., "Create a new conversation")]')
+    createNewConv.click()
+
+    # Chat Info Inputs
+    chatName = driver.find_element(By.XPATH, '//input[@placeholder="Enter a name for this conversation"]')
+    chatDescription = driver.find_element(By.XPATH,'//textarea[@placeholder="Enter a description for this conversation"]')
+
+    chatInfos = createChatInfo()
+
+    chatName.send_keys(chatInfos[0])
+    chatDescription.send_keys(chatInfos[1])
+
+    createConvBtn = driver.find_element(By.XPATH, '//button[contains(., "Create conversation")]')
+    createConvBtn.click()
+
+# Send Message to a chat
+
+def sendMsg():
+    msgForm = WebDriverWait(driver, 30).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'new-message-form'))
+    )
+    msgForm.send_keys()
+
+def getDetailsofChat():
+    
 
 # Mail Actions
 

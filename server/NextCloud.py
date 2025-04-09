@@ -14,6 +14,7 @@ def startNextCloud():
         
         try:
             existing_container = client.containers.get('my_web_server')
+            existing_container.restart()
             print("Container already exists...")
             return "Exists" # Exit the function after restarting
         except NotFound:

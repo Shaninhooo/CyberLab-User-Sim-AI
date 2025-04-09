@@ -9,31 +9,6 @@ api_key = os.getenv("API_KEY")
 
 
 client = genai.Client(api_key=api_key)
-df = pd.read_csv('ai/personas.csv')
-
-# Function to create a new persona using the Google GEMINI LLM and write it to the CSV file
-def createPersona():
-    persona_prompt = "Create a brief persona for him. A persona should include the following attributes: Full Name, Gender, Age, Location, Language, Occupation, Interests, Education, Online Behavior, IT Proficiency, Unique Attributes, and a Summary.  Please be creative in creating the characteristics."
-
-    # Generates persona with response
-    response = client.models.generate_content(
-        model="gemini-2.0-flash", contents=" Example: Maximilian is a 32-year-old accountant based in Berlin, Germany. His native language is English. create a different persona with different details every time using this example,Create one brief persona for him. A persona should include the following attributes: Full Name, Gender, Age, Location, Language, Occupation, Interests, Education, Online Behavior, IT Proficiency, Unique Attributes, and a Summary. Please be creative in creating the characteristics. output in a format easy to read in csv also break line for end of each attribute "
-    )
-
-    # Filters response into csv data
-    new_row = {}
-    for line in response.text.split('\n'):
-        for header in df.columns:
-            if header in line:
-                info = line.split(header+',')[1]
-                cleanedInfo = info.replace(',', '')  # Replace commas with empty string
-                new_row[header] = cleanedInfo
-
-    df.loc[len(df)] = new_row  # Append row
-    df.to_csv('personas.csv', index=False)  # Overwrite
-
-    print("Row added to the original CSV!")
-
 
 def usePersona(creationPrompt):
     for _, row in df.iterrows():
@@ -76,3 +51,21 @@ def createEventInfo():
     eventInfos = [event_title, start_date, start_time, end_date, end_time, event_location, event_description]
 
     return eventInfos
+
+
+# Generates Chat Infos Using Gemini LLM
+def createChatInfo():
+    prompt = "Generate a chat group title starting in **Group Chat Title:** format and chat description starting in **Group Chat Description:** format for a group chat the persona is creating with no special characters e.g. emojis."
+    text = usePersona(prompt)
+
+    title_match = re.search(r"\*\*Group Chat Title:\*\*\s*(.*)", text)
+    description_match = re.search(r"\*\*Group Chat Description:\*\*\s*(.*)", text, re.DOTALL)
+
+    chat_title = title_match.group(1).strip() if title_match else "N/A"
+    chat_description = description_match.group(1).strip() if description_match else "N/A"
+
+    eventInfos = [chat_title, chat_description]
+
+    return eventInfos
+
+
